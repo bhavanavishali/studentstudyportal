@@ -16,7 +16,7 @@ urlpatterns = [
 
     path('youtube/',views.youtube,name='youtube'),
 
-    # path('dictionary/',views.dictionary,name='dictionary'),
+    path('dictionary/',views.dictionary,name='dictionary'),
 
     path('book/',views.book,name='book'),
     

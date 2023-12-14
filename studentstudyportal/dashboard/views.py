@@ -194,47 +194,60 @@ def book(request):
     context = {'form': form}
     return render(request, 'books.html', context)
 
-# def dictionary(request):
-#     if request.method == 'POST':
-#         form = DashboardForm(request.POST)
-#         if form.is_valid():
-#             text = request.POST['text']
-#             url = "https://api.dictionary.api.dev/api/v2/entries/en_US/"+text
-#             r = requests.get(url)
-#             answer = r.json()
-#             try:
-#                 # Extracting information from the API response
-#                 phonetics = answer[0]['phonetics'][0]['text']
-#                 audio = answer[0]['phonetics'][0]['audio']
-#                 definition = answer[0]['meanings'][0]['definitions'][0]['definition']
-#                 example = answer[0]['meanings'][0]['definitions'][0]['example']
-#                 synonyms = answer[0]['meanings'][0]['definitions'][0]['synonyms']
+def dictionary(request):
+    if request.method == 'POST':
+        form = DashboardForm(request.POST)
+        if form.is_valid():
+            text = request.POST['text']
+            url = "https://api.dictionary.api.dev/api/v2/entries/en_US/"+text
+            r = requests.get(url)
+            answer = r.json()
+            try:
+                # Extracting information from the API response
+                phonetics = answer[0]['phonetics'][0]['text']
+                audio = answer[0]['phonetics'][0]['audio']
+                definition = answer[0]['meanings'][0]['definitions'][0]['definition']
+                example = answer[0]['meanings'][0]['definitions'][0]['example']
+                synonyms = answer[0]['meanings'][0]['definitions'][0]['synonyms']
 
-#                 # Creating a context dictionary with extracted information
-#                 context = {
-#                     'form': form,
-#                     'input': text,
-#                     'phonetics': phonetics,
-#                     'audio': audio,
-#                     'definition': definition,
-#                     'example': example,
-#                     'synonyms': synonyms
-#                 }
+                # Creating a context dictionary with extracted information
+                context = {
+                    'form': form,
+                    'input': text,
+                    'phonetics': phonetics,
+                    'audio': audio,
+                    'definition': definition,
+                    'example': example,
+                    'synonyms': synonyms
+                }
 
-#             except:
-#                 # Handling the case when the API response structure is not as expected
-#                 context = {
-#                     'form': form,
-#                     'input': text
-#                 }
+            except:
+                # Handling the case when the API response structure is not as expected
+                context = {
+                    'form': form,
+                    'input': text
+                }
 
-#         # Render the 'dictionary.html' template with the context
-#         return render(request, 'dictionary.html', context)
+        # Render the 'dictionary.html' template with the context
+        return render(request, 'dictionary.html', context)
 
-#     else:
-#         # Handling the GET request (initial page load)
-#         form = DashboardForm()
-#         context = {'form': form}
+    else:
+        # Handling the GET request (initial page load)
+        form = DashboardForm()
+        context = {'form': form}
 
-#     # Render the 'dictionary.html' template with the context
-#     return render(request, 'dictionary.html', context)
+    # Render the 'dictionary.html' template with the context
+    return render(request, 'dictionary.html', context)
+
+def register(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            username = form.cleaned_data.get('username')
+            messages.success(request,f"Account created for {username}!!")
+            #redirect ('dashboard:login')
+    else:
+        form = UserRegistrationForm()
+    context = {'form':form}
+    return render(request,'register.html',context)
