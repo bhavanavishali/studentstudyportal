@@ -15,5 +15,9 @@ urlpatterns = [
     path('delete_homework/<int:pk>/',views.delete_homework,name='delete_homework'),
 
     path('youtube/',views.youtube,name='youtube'),
+
+    # path('dictionary/',views.dictionary,name='dictionary'),
+
+    path('book/',views.book,name='book'),
     
 ]

@@ -4,6 +4,7 @@ from .models import Notes
 from .forms import *
 from django.views import generic
 from youtubesearchpython import VideosSearch
+import requests
 
 
 
@@ -76,6 +77,7 @@ def delete_homework(request,pk=None):
     homework.delete()
     print('deleted')
     return redirect('dashboard:homework')
+#...............................................Youtube Search .................................
 
 def youtube(request):
     if request.method =='POST':
@@ -107,3 +109,132 @@ def youtube(request):
         form = DashboardForm()
     context = {'form':form}
     return render(request,'youtube.html',context)
+
+#......................... Dictionary ............................
+
+# def dictionary(request):
+#     if request.method == 'POST':
+#         form = DashboardForm(request.POST)
+#         if form.is_valid():
+#             text = request.POST['text']
+#             url = "https://api.dictionary.api.dev/api/v2/entries/en_US/" + text
+#             r = requests.get(url)
+#             answer = r.json()
+#             try:
+#                 phonetics = answer[0]['phonetics'][0]['text']
+#                 audio = answer[0]['phonetics'][0]['audio']
+#                 definition = answer[0]['meanings'][0]['definitions'][0]['definition']
+#                 example = answer[0]['meanings'][0]['definitions'][0]['example']
+#                 synonyms = answer[0]['meanings'][0]['definitions'][0]['synonyms']
+#                 contex ={
+#                     'form':form,
+#                     'input':text,
+#                     'phonetics':phonetics,
+#                     'audio':audio,
+#                     'definition':definition,
+#                     'example':example,
+#                     'synonyms':synonyms
+#                 }
+#             except:
+#                 context = {
+#                     'form':form,
+#                     'input':''
+#                 }
+#         return render(request,'dictionary.html',context)
+
+
+
+#     else:
+#         form = DashboardForm()
+#     context = {'form':form}
+#     return render(request,'dictionary.html',context)
+
+
+# ......................................Book Search ............................
+
+def book(request):
+    if request.method == 'POST':
+        form = DashboardForm(request.POST)
+        if form.is_valid():
+            text = request.POST['text']
+            url = "https://www.googleapis.com/books/v1/volumes?q=" + text
+            try:
+                r = requests.get(url)
+                r.raise_for_status()  # Raise an HTTPError for bad responses (4xx or 5xx)
+                answer = r.json()
+                result_list = []
+                for i in range(min(10, len(answer.get('items', [])))):
+                    volume_info = answer['items'][i].get('volumeInfo', {})
+                    
+                    result_dict = {
+                        'title': volume_info.get('title', 'N/A'),
+                        'subtitle': volume_info.get('subtitle', ''),
+                        'description': volume_info.get('description', ''),
+                        'count': volume_info.get('pageCount', 0),
+                        'categories': volume_info.get('categories', []),
+                        'rating': volume_info.get('pageRating', 0.0),
+                        'thumbnail': volume_info.get('imageLinks', {}).get('thumbnail', ''),
+                        'preview': volume_info.get('previewLink', ''),
+                    }
+
+                    result_list.append(result_dict)
+
+                context = {'form': form, 'results': result_list}
+                return render(request, 'books.html', context)
+
+            except requests.RequestException as e:
+                # Handle exceptions related to the request (e.g., network error, bad response)
+                error_message = f"Error during request: {str(e)}"
+                context = {'form': form, 'error_message': error_message}
+                return render(request, 'books.html', context)
+
+    else:
+        form = DashboardForm()
+
+    context = {'form': form}
+    return render(request, 'books.html', context)
+
+# def dictionary(request):
+#     if request.method == 'POST':
+#         form = DashboardForm(request.POST)
+#         if form.is_valid():
+#             text = request.POST['text']
+#             url = "https://api.dictionary.api.dev/api/v2/entries/en_US/"+text
+#             r = requests.get(url)
+#             answer = r.json()
+#             try:
+#                 # Extracting information from the API response
+#                 phonetics = answer[0]['phonetics'][0]['text']
+#                 audio = answer[0]['phonetics'][0]['audio']
+#                 definition = answer[0]['meanings'][0]['definitions'][0]['definition']
+#                 example = answer[0]['meanings'][0]['definitions'][0]['example']
+#                 synonyms = answer[0]['meanings'][0]['definitions'][0]['synonyms']
+
+#                 # Creating a context dictionary with extracted information
+#                 context = {
+#                     'form': form,
+#                     'input': text,
+#                     'phonetics': phonetics,
+#                     'audio': audio,
+#                     'definition': definition,
+#                     'example': example,
+#                     'synonyms': synonyms
+#                 }
+
+#             except:
+#                 # Handling the case when the API response structure is not as expected
+#                 context = {
+#                     'form': form,
+#                     'input': text
+#                 }
+
+#         # Render the 'dictionary.html' template with the context
+#         return render(request, 'dictionary.html', context)
+
+#     else:
+#         # Handling the GET request (initial page load)
+#         form = DashboardForm()
+#         context = {'form': form}
+
+#     # Render the 'dictionary.html' template with the context
+#     return render(request, 'dictionary.html', context)
