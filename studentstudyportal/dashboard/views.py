@@ -5,13 +5,13 @@ from .forms import *
 from django.views import generic
 from youtubesearchpython import VideosSearch
 import requests
-
+from django.contrib.auth.decorators import login_required
 
 
 # Create your views here.
 def home(request):
     return render(request,'home.html')
-
+@login_required
 def notes(request):
     if request.method == 'POST':
         form = NotesForm(request.POST)
@@ -25,7 +25,7 @@ def notes(request):
     notes = Notes.objects.filter(user=request.user)
     context = {'notes':notes,'form':form}
     return render(request,'notes.html',context)
-
+@login_required
 def delete_note(request,pk=None):
     note = Notes.objects.get(id=pk)
     note.delete()
@@ -40,7 +40,7 @@ class NotesDetailView(generic.DetailView):
 
 #..............................Homework................................................
 
-
+@login_required
 def homework(request):
     if request.method == 'POST':
         form = HomeworkForm(request.POST)
@@ -62,7 +62,7 @@ def homework(request):
     homework = Homework.objects.filter(user=request.user)
     context = {'homeworks':homework,'form':form}
     return render(request,'homework.html',context)
-
+@login_required
 def update_homework(request,pk=None):
     homework = Homework.objects.get(id=pk)
     if homework.is_finished == True:
@@ -78,7 +78,7 @@ def delete_homework(request,pk=None):
     print('deleted')
     return redirect('dashboard:homework')
 #...............................................Youtube Search .................................
-
+@login_required
 def youtube(request):
     if request.method =='POST':
         form = DashboardForm(request.POST)
@@ -151,7 +151,7 @@ def youtube(request):
 
 
 # ......................................Book Search ............................
-
+@login_required
 def book(request):
     if request.method == 'POST':
         form = DashboardForm(request.POST)
@@ -193,7 +193,7 @@ def book(request):
 
     context = {'form': form}
     return render(request, 'books.html', context)
-
+@login_required
 def dictionary(request):
     if request.method == 'POST':
         form = DashboardForm(request.POST)
@@ -246,7 +246,7 @@ def register(request):
             form.save()
             username = form.cleaned_data.get('username')
             messages.success(request,f"Account created for {username}!!")
-            #redirect ('dashboard:login')
+            return redirect ('login')
     else:
         form = UserRegistrationForm()
     context = {'form':form}
