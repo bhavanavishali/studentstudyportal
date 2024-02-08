@@ -40,23 +40,24 @@
               </a>
               <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                 <a class="dropdown-item" href="{% url 'dashboard:book' %}">Books</a>
-                <a class="dropdown-item" href="#">Wikipedia</a>
+                
                 <div class="dropdown-divider"></div>
 
-                <a class="dropdown-item" href="{% url 'dashboard:dictionary' %}">Dictionary</a>
-                <a class="dropdown-item" href="{% url 'dashboard:youtube' %}">Youtube</a>
+                <a class="dropdown-item" href="{% url 'dashboard:dictionary' %}">Search</a>
+                
                 <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="#">To-do</a>
+                
                 <a class="dropdown-item" href="{% url 'dashboard:homework' %}">Homework</a>
                 <div class="dropdown-divider"></div>
                 <a class="dropdown-item" href="{% url 'dashboard:notes' %}">Notes</a>
-                <a class="dropdown-item" href="#">Conversion</a>
+                
                 <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="{% url 'dashboard:youtube' %}">Youtube</a>
               </div>
             </li>
 
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+              <a class="nav-link" href="{% url 'dashboard:logout' %}">Logout</a>
             </li>
             {% else %}
             <li class="nav-item">

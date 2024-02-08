@@ -133,8 +133,8 @@ STATICFILES_DIRS = [BASE_DIR/"static"]
 LOGIN_REDIRECT_URL = 'dashboard:home'
 LOGIN_URL = 'login'
 
-LOGOUT_REDIRECT_URL = 'dashboard:home'
-LOGOUT_URL = '/logout/'
+# LOGOUT_REDIRECT_URL = 'dashboard:home'
+# LOGOUT_URL = '/logout/'
 
 
 CRISPY_TEMPLATE_PACK = "bootstrap4"

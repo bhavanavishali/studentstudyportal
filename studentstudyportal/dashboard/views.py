@@ -1,10 +1,13 @@
+from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.contrib import messages
+from django.urls import reverse
 from .models import Notes
 from .forms import *
 from django.views import generic
 from youtubesearchpython import VideosSearch
 import requests
+from django.contrib import auth
 from django.contrib.auth.decorators import login_required
 
 
@@ -36,6 +39,17 @@ class NotesDetailView(generic.DetailView):
     model = Notes
     template_name = 'notes_detail.html'
     context_object_name = 'notes'
+
+#.......................................Download the note in PDF formate.....................
+
+import pdfkit
+config = pdfkit.configuration(wkhtmltopdf=r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe")
+
+def generatePDF(request,pk):
+    pdf = pdfkit.from_url(request.build_absolute_uri(reverse('dashboard:notes_detail',args=[pk])), False, configuration=config)
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="file_name.pdf"'
+    return response
 
 
 #..............................Homework................................................
@@ -81,11 +95,11 @@ def delete_homework(request,pk=None):
 @login_required
 def youtube(request):
     if request.method =='POST':
-        form = DashboardForm(request.POST)
-        text = request.POST['text']
-        video = VideosSearch(text,limit=20)
+        form = DashboardForm(request.POST)    # Create a DashboardForm instance with the POST data
+        text = request.POST['text']           # Retrieve the 'text' field from the POST data
+        video = VideosSearch(text,limit=20)   # Use the VideosSearch class to search for videos on YouTube based on the provided text
         result_list =[]
-        for i in video.result()['result']:
+        for i in video.result()['result']:      # Iterate through the search results and create a dictionary for each video
             result_dict ={
                 'input':['text'],
                 'title':i['title'],
@@ -99,9 +113,9 @@ def youtube(request):
             }
             desc = ''
             if i['descriptionSnippet']:
-                for j in i['descriptionSnippet']:
+                for j in i['descriptionSnippet']: #descriptionSnippet is to offer a brief preview or summary of the video's description, allowing users or developers to get an idea of the content without having to retrieve the full description
                     desc += j['text']
-            result_dict['description']= desc
+            result_dict['description']= desc    # Add the description to the result dictionary
             result_list.append(result_dict)
             context = {'form':form,'results':result_list}
             return render(request,'youtube.html',context)
@@ -156,18 +170,18 @@ def book(request):
     if request.method == 'POST':
         form = DashboardForm(request.POST)
         if form.is_valid():
-            text = request.POST['text']
-            url = "https://www.googleapis.com/books/v1/volumes?q=" + text
+            text = request.POST['text'] # Construct the URL for the Google Books API search
+            url = "https://www.googleapis.com/books/v1/volumes?q=" + text  
             try:
-                r = requests.get(url)
-                r.raise_for_status()  # Raise an HTTPError for bad responses (4xx or 5xx)
-                answer = r.json()
+                r = requests.get(url)       # Make a GET request to the Google Books API
+                r.raise_for_status()         # Raise an HTTPError for bad responses 
+                answer = r.json()           # Parse the JSON response
                 result_list = []
-                for i in range(min(10, len(answer.get('items', [])))):
-                    volume_info = answer['items'][i].get('volumeInfo', {})
+                for i in range(min(10, len(answer.get('items', [])))):       # Iterate through the first 10 items in the 'items' array of the response
+                    volume_info = answer['items'][i].get('volumeInfo', {})       # Extract relevant information from the 'volumeInfo' field
                     
                     result_dict = {
-                        'title': volume_info.get('title', 'N/A'),
+                        'title': volume_info.get('title', 'N/A'),               # Create a dictionary with book information
                         'subtitle': volume_info.get('subtitle', ''),
                         'description': volume_info.get('description', ''),
                         'count': volume_info.get('pageCount', 0),
@@ -177,9 +191,9 @@ def book(request):
                         'preview': volume_info.get('previewLink', ''),
                     }
 
-                    result_list.append(result_dict)
+                    result_list.append(result_dict)                 # Append the result dictionary to the result_list
 
-                context = {'form': form, 'results': result_list}
+                context = {'form': form, 'results': result_list}    # Prepare a context dictionary with the form and search results
                 return render(request, 'books.html', context)
 
             except requests.RequestException as e:
@@ -189,55 +203,11 @@ def book(request):
                 return render(request, 'books.html', context)
 
     else:
-        form = DashboardForm()
+        form = DashboardForm()    # If the request method is not POST, create an instance of DashboardForm   
 
     context = {'form': form}
     return render(request, 'books.html', context)
-@login_required
-def dictionary(request):
-    if request.method == 'POST':
-        form = DashboardForm(request.POST)
-        if form.is_valid():
-            text = request.POST['text']
-            url = "https://api.dictionary.api.dev/api/v2/entries/en_US/"+text
-            r = requests.get(url)
-            answer = r.json()
-            try:
-                # Extracting information from the API response
-                phonetics = answer[0]['phonetics'][0]['text']
-                audio = answer[0]['phonetics'][0]['audio']
-                definition = answer[0]['meanings'][0]['definitions'][0]['definition']
-                example = answer[0]['meanings'][0]['definitions'][0]['example']
-                synonyms = answer[0]['meanings'][0]['definitions'][0]['synonyms']
 
-                # Creating a context dictionary with extracted information
-                context = {
-                    'form': form,
-                    'input': text,
-                    'phonetics': phonetics,
-                    'audio': audio,
-                    'definition': definition,
-                    'example': example,
-                    'synonyms': synonyms
-                }
-
-            except:
-                # Handling the case when the API response structure is not as expected
-                context = {
-                    'form': form,
-                    'input': text
-                }
-
-        # Render the 'dictionary.html' template with the context
-        return render(request, 'dictionary.html', context)
-
-    else:
-        # Handling the GET request (initial page load)
-        form = DashboardForm()
-        context = {'form': form}
-
-    # Render the 'dictionary.html' template with the context
-    return render(request, 'dictionary.html', context)
 
 def register(request):
     if request.method == 'POST':
@@ -251,3 +221,45 @@ def register(request):
         form = UserRegistrationForm()
     context = {'form':form}
     return render(request,'register.html',context)
+
+def logout(request):
+    auth.logout(request)
+    return redirect('dashboard:home')
+
+
+import openai   # Imports the OpenAI Python library, which allows interaction with the OpenAI API.
+import os       # used here to access environment variable(Environment variables in Python are a way to store configuration settings, system paths, and other information outside of your Python code.)
+from dotenv import load_dotenv  #It's used to load environment variables from a .env file
+from django.shortcuts import render  
+
+load_dotenv()       #function to load environment variables from a .env file
+
+api_key = os.getenv("OPENAI_KEY", None)     #Retrieves the OpenAI API key from the environment variables
+
+@login_required         #This decorator ensures that only authenticated users can access 
+def dictionary(request):
+    chatbot_response = None
+    
+    if api_key is not None and request.method == 'POST':
+        
+        openai.api_key = api_key
+        user_input = request.POST.get('text')       #Retrieves the user's input from the POST data.
+        prompt = user_input
+        messages = [
+                  
+           {"role": "user", "content": user_input},     #Contains the content or text of the user's input
+        ]
+        response = openai.ChatCompletion.create(        #Sends a request to the OpenAI Chat API to generate a chatbot response based on the provided messages.
+            model = "gpt-3.5-turbo",
+            
+            messages=messages,
+            max_tokens=1000,
+            stop="."
+        )
+        print(response)
+        chatbot_response = response['choices'][0]['message']['content']  # Assign the response to chatbot_response
+        print(chatbot_response)
+    
+    return render(request, 'dictionary.html', {'response':chatbot_response})  # Pass chatbot_response to the template
+
+

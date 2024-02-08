@@ -7,6 +7,8 @@ urlpatterns = [
     path('notes/',views.notes,name='notes'),
     path('delete_note/<int:pk>/',views.delete_note,name='delete_note'),
     path('notes_detail/<int:pk>/',views.NotesDetailView.as_view(),name='notes_detail'),
+    path('pdf/<int:pk>/',views.generatePDF,name='pdf'),
+    
 
     #..................Homework....................................
 
@@ -19,5 +21,7 @@ urlpatterns = [
     path('dictionary/',views.dictionary,name='dictionary'),
 
     path('book/',views.book,name='book'),
+
+    path('logout/',views.logout,name='logout'),
     
 ]
